@@ -27,7 +27,7 @@
             transform: scale(1) !important;
         }
 
-        /* Styling for the splash screen (Updated to deep cyan/teal) */
+        /* Styling for the splash screen */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -37,7 +37,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #0d9488; /* Deep Teal background */
+            background-color: #0b1c3b; /* Deep Blue background */
             z-index: 50;
             transition: opacity 0.5s ease-out;
         }
@@ -68,62 +68,16 @@
             z-index: 100;
         }
 
-        .contact-modal, .auth-modal, .consultant-modal {
+        .contact-modal, .auth-modal {
             max-width: 90%;
             max-height: 90%;
             animation: fadeInScale 0.3s ease-out;
         }
 
-        /* Responsive chat window adjustments */
-        #chat-window {
-            height: 300px; /* Default height */
-            min-height: 250px;
-        }
-        @media (min-width: 640px) {
-            .consultant-modal {
-                max-width: 500px;
-            }
-            #chat-window {
-                height: 400px;
-            }
-        }
-
-
         @keyframes fadeInScale {
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
         }
-
-        /* --- Water Wave Animation CSS --- */
-        .header-with-waves {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wave-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 15px; /* Height of the wave visual */
-            overflow: hidden;
-        }
-
-        .wave-path {
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 25" preserveAspectRatio="none"><path fill="%23FFFFFF" d="M0,25 C25,10 75,40 100,25 L100,25 L100,5 L0,5 Z" /></svg>') repeat-x;
-            background-size: 50% 100%;
-            transform: translateY(10px); /* Adjust vertical position */
-            animation: wave-movement 3s linear infinite;
-        }
-
-        @keyframes wave-movement {
-            0% { background-position-x: 0; }
-            100% { background-position-x: 100px; } /* Move 100px horizontally */
-        }
-        /* --- End Water Wave Animation CSS --- */
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -144,15 +98,11 @@
         // DOM elements
         const contactModalOverlay = document.getElementById('contact-modal-overlay');
         const authModalOverlay = document.getElementById('auth-modal-overlay');
-        const consultantModalOverlay = document.getElementById('consultant-modal-overlay');
         const authStatusElement = document.getElementById('auth-status');
         const otpInputContainer = document.getElementById('otp-input-container');
         const phoneInputContainer = document.getElementById('phone-input-container');
         const authMessage = document.getElementById('auth-message');
         
-        // New global variable for the dynamically generated OTP
-        let generatedOTP = null;
-
         // Helper function for user data path
         const getUserProfilePath = (uid) => `/artifacts/${appId}/users/${uid}/user_data/profile`;
 
@@ -248,82 +198,36 @@
 
         window.hideAuthModal = function() {
             authModalOverlay.style.display = 'none';
-            // Ensure the floating OTP pop-up is hidden if the main auth modal is closed
-            hideOtpPopup();
-        }
-
-        // --- OTP Logic ---
-        function generateRandomOTP() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
-
-        function showOtpPopup(otp) {
-            const popup = document.getElementById('otp-popup');
-            document.getElementById('current-otp').textContent = otp;
-            popup.classList.remove('hidden', 'opacity-0');
-            popup.classList.add('opacity-100');
-            
-            popup.timeoutId = setTimeout(() => {
-                hideOtpPopup();
-            }, 5000); 
-        }
-
-        window.hideOtpPopup = function() {
-            const popup = document.getElementById('otp-popup');
-            if (popup.timeoutId) {
-                clearTimeout(popup.timeoutId);
-                popup.timeoutId = null;
-            }
-
-            popup.classList.remove('opacity-100');
-            popup.classList.add('opacity-0');
-            setTimeout(() => {
-                popup.classList.add('hidden');
-            }, 300);
         }
         
-        // --- Mock OTP Logic (Improved Simulation) ---
+        // --- Mock OTP Logic ---
         
         let mockPhoneNumber = null;
 
         window.sendOTP = function() {
             const phoneInput = document.getElementById('phone-number-input');
             const phoneNumber = phoneInput.value.trim();
-            const sendButton = document.querySelector('#phone-input-container button');
 
             if (phoneNumber.length < 10) {
                 authMessage.textContent = "Please enter a valid mobile number (min 10 digits).";
                 return;
             }
-
-            // Show loading/sending state
-            authMessage.textContent = `Sending OTP to ${phoneNumber}...`;
-            sendButton.disabled = true;
-            sendButton.textContent = 'Sending...';
             
-            generatedOTP = generateRandomOTP();
-
-            setTimeout(() => {
-                sendButton.disabled = false;
-                sendButton.textContent = 'Send OTP';
-                
-                showOtpPopup(generatedOTP);
-                authMessage.innerHTML = `An OTP has been sent to **${phoneNumber}**. Please check the pop-up on the screen.`;
-                mockPhoneNumber = phoneNumber;
-                
-                phoneInputContainer.classList.add('hidden');
-                otpInputContainer.classList.remove('hidden');
-                document.getElementById('otp-input').focus();
-
-            }, 2000);
+            // Mock OTP sending process
+            authMessage.textContent = `OTP sent to ${phoneNumber}. Enter 123456 to verify.`;
+            mockPhoneNumber = phoneNumber;
+            
+            // Show OTP input field
+            phoneInputContainer.classList.add('hidden');
+            otpInputContainer.classList.remove('hidden');
         }
 
         window.verifyOTP = async function() {
             const otpInput = document.getElementById('otp-input');
             const otp = otpInput.value.trim();
 
-            if (otp !== generatedOTP) {
-                authMessage.innerHTML = `Invalid OTP. Please try again. <span class="text-red-600 font-bold">(HINT: ${generatedOTP})</span>`; 
+            if (otp !== '123456') {
+                authMessage.textContent = "Invalid OTP. Please try again (Use 123456).";
                 return;
             }
 
@@ -333,12 +237,14 @@
             }
 
             if (db) {
+                // Save the phone number to Firestore
                 try {
                     await setDoc(doc(db, getUserProfilePath(userId)), {
                         phoneNumber: mockPhoneNumber,
                         verificationDate: new Date().toISOString()
                     });
                     authMessage.textContent = `Verification successful for ${mockPhoneNumber}!`;
+                    // Close modal and open the call options modal immediately
                     hideAuthModal();
                     showContactOptions(); 
                 } catch (error) {
@@ -347,154 +253,6 @@
                 }
             }
         }
-        
-        // --- Gemini API Logic (Hydration Consultant) ---
-       // Gemini API backend URL (Netlify Function ka path)
-const GEMINI_API_URL = "/.netlify/functions/gemini";
-Y}`;
-        const SYSTEM_INSTRUCTION = "You are a friendly and professional Hydration Consultant for AMRIT Mineral Water Suppliers. Answer user questions concisely, focusing on hydration health, recommended water intake based on age/activity, and general water quality facts. Keep responses helpful and encouraging. Use Google Search grounding.";
-
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        async function fetchWithBackoff(url, options, maxRetries = 5) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.status !== 429) {
-                        return response;
-                    }
-                    console.warn(`Rate limit exceeded, retrying in ${2 ** i}s...`);
-                    await delay(2 ** i * 1000);
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    console.error(`Fetch failed, retrying in ${2 ** i}s...`);
-                    await delay(2 ** i * 1000);
-                }
-            }
-            throw new Error('API call failed after multiple retries.');
-        }
-
-        window.askConsultant = async function() {
-            const chatInput = document.getElementById('chat-input');
-            const userPrompt = chatInput.value.trim();
-            if (!userPrompt) return;
-
-            const chatBody = document.getElementById('chat-body');
-            const sendButton = document.getElementById('chat-send-btn');
-
-            // 1. Display user message
-            appendMessage(chatBody, userPrompt, 'user');
-            chatInput.value = '';
-            sendButton.disabled = true;
-            sendButton.innerHTML = 'Sending...';
-
-            // 2. Display loading indicator
-            const loadingMessage = appendMessage(chatBody, 'Consultant is thinking...', 'model-loading');
-
-            const payload = {
-                contents: [{ parts: [{ text: userPrompt }] }],
-                tools: [{ "google_search": {} }],
-                systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-            };
-
-            try {
-                const response = await fetchWithBackoff(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                const candidate = result.candidates?.[0];
-
-                // Remove loading indicator
-                chatBody.removeChild(loadingMessage);
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    let text = candidate.content.parts[0].text;
-                    let sources = [];
-                    const groundingMetadata = candidate.groundingMetadata;
-
-                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                        sources = groundingMetadata.groundingAttributions
-                            .map(attribution => ({
-                                uri: attribution.web?.uri,
-                                title: attribution.web?.title,
-                            }))
-                            .filter(source => source.uri && source.title);
-                    }
-
-                    if (sources.length > 0) {
-                        text += "\n\n**Sources:**\n";
-                        sources.forEach((s, index) => {
-                            text += `[${index + 1}] <a href="${s.uri}" target="_blank" class="text-teal-700 underline">${s.title}</a>\n`;
-                        });
-                    }
-
-                    appendMessage(chatBody, text, 'model');
-
-                } else {
-                    appendMessage(chatBody, "Sorry, I couldn't get an answer right now.", 'error');
-                }
-
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                chatBody.removeChild(loadingMessage);
-                appendMessage(chatBody, "A network error occurred. Please try again.", 'error');
-            } finally {
-                sendButton.disabled = false;
-                sendButton.innerHTML = 'Send';
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }
-        };
-
-        function appendMessage(chatBody, text, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `flex mb-4 ${type === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `max-w-xs sm:max-w-md p-3 rounded-xl shadow-md ${
-                type === 'user' 
-                    ? 'bg-teal-500 text-white rounded-br-none' 
-                    : type === 'model-loading' 
-                    ? 'bg-gray-200 text-gray-500 text-sm italic rounded-tl-none animate-pulse' 
-                    : type === 'error'
-                    ? 'bg-red-100 text-red-700 rounded-tl-none'
-                    : 'bg-cyan-100 text-gray-800 rounded-tl-none'
-            }`;
-            
-            if (type === 'model' || type === 'user') {
-                // Simple markdown parsing for bold and line breaks
-                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                formattedText = formattedText.replace(/\n/g, '<br>');
-                
-                // Keep anchor tags for sources intact if they were added in askConsultant
-                if (type === 'model') {
-                     // Regex to find the <a> tags created in askConsultant and prevent escaping of the HTML
-                    formattedText = formattedText.replace(/&lt;a href/g, '<a href');
-                    formattedText = formattedText.replace(/&lt;\/a&gt;/g, '</a>');
-                }
-
-                bubble.innerHTML = formattedText;
-            } else {
-                bubble.textContent = text;
-            }
-
-            messageDiv.appendChild(bubble);
-            chatBody.appendChild(messageDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-            return messageDiv;
-        }
-
-        window.showConsultantModal = function() {
-            consultantModalOverlay.style.display = 'flex';
-        };
-
-        window.hideConsultantModal = function() {
-            consultantModalOverlay.style.display = 'none';
-        };
 
 
         // --- Startup ---
@@ -519,31 +277,22 @@ Y}`;
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 
-    <!-- OTP POPUP Message Box (Updated with Close Button) -->
-    <div id="otp-popup" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl border-4 border-cyan-500 z-[110] transition-opacity duration-300 hidden opacity-0 text-center">
-        <p class="text-xl font-bold text-gray-800 mb-2">Your OTP is:</p>
-        <p id="current-otp" class="text-5xl font-extrabold text-teal-600 tracking-wider mb-4">000000</p>
-        <button onclick="hideOtpPopup()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-4 rounded-lg transition duration-200 text-sm">
-            Close
-        </button>
-    </div>
-
     <!-- Auth/OTP Modal -->
     <div id="auth-modal-overlay" class="modal-overlay" onclick="hideAuthModal()">
         <div id="auth-modal" class="auth-modal bg-white p-6 sm:p-10 rounded-2xl shadow-2xl max-w-sm w-full" onclick="event.stopPropagation()">
-            <h3 class="text-3xl font-bold text-cyan-700 mb-4">Secure Login</h3>
+            <h3 class="text-3xl font-bold text-blue-700 mb-4">Secure Login</h3>
             <p id="auth-message" class="text-sm text-gray-600 mb-6 border-b pb-4">Enter your mobile number to receive the OTP.</p>
 
             <div id="phone-input-container">
                 <label for="phone-number-input" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                <input type="tel" id="phone-number-input" placeholder="+91 98765 43210" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 mb-4">
-                <button onclick="sendOTP()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl transition duration-300">
+                <input type="tel" id="phone-number-input" placeholder="+91 98765 43210" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-4">
+                <button onclick="sendOTP()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-300">
                     Send OTP
                 </button>
             </div>
 
             <div id="otp-input-container" class="hidden">
-                <label for="otp-input" class="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label>
+                <label for="otp-input" class="block text-sm font-medium text-gray-700 mb-1">Enter OTP (Use: 123456)</label>
                 <input type="text" id="otp-input" placeholder="------" maxlength="6" class="w-full p-3 border border-gray-300 rounded-lg text-center text-xl tracking-widest focus:ring-cyan-500 focus:border-cyan-500 mb-4">
                 <button onclick="verifyOTP()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition duration-300">
                     Verify & Continue
@@ -555,47 +304,11 @@ Y}`;
             </button>
         </div>
     </div>
-    
-    <!-- Gemini Hydration Consultant Modal -->
-    <div id="consultant-modal-overlay" class="modal-overlay" onclick="hideConsultantModal()">
-        <div id="consultant-modal" class="consultant-modal bg-white p-4 sm:p-6 rounded-2xl shadow-2xl w-full flex flex-col" onclick="event.stopPropagation()">
-            
-            <div class="flex justify-between items-center border-b pb-3 mb-3">
-                <h3 class="text-2xl font-bold text-teal-700 flex items-center">
-                    ✨ Hydration Consultant
-                </h3>
-                <button onclick="hideConsultantModal()" class="text-gray-500 hover:text-gray-800 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div id="chat-window" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-50 rounded-lg border">
-                <!-- Chat messages go here -->
-                <div id="chat-body" class="flex flex-col">
-                    <div class="flex mb-4 justify-start">
-                        <div class="max-w-xs sm:max-w-md p-3 rounded-xl shadow-md bg-cyan-100 text-gray-800 rounded-tl-none">
-                            Hello! I am your AI Hydration Consultant. Ask me anything about recommended water intake, health benefits, or water quality standards.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex space-x-3">
-                <input type="text" id="chat-input" placeholder="Ask about daily water intake or water quality..." class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key === 'Enter') askConsultant()">
-                <button id="chat-send-btn" onclick="askConsultant()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
-                    Send
-                </button>
-            </div>
-        </div>
-    </div>
-
 
     <!-- Contact Options Modal/Message Box (Existing) -->
     <div id="contact-modal-overlay" class="modal-overlay" onclick="hideContactOptions()">
         <div id="contact-modal" class="contact-modal bg-white p-6 sm:p-10 rounded-2xl shadow-2xl max-w-lg w-full" onclick="event.stopPropagation()">
-            <h3 class="text-3xl font-bold text-cyan-700 mb-6 border-b pb-3 flex items-center">
+            <h3 class="text-3xl font-bold text-blue-700 mb-6 border-b pb-3 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-2C7.82 21 3 16.18 3 10V5z" />
                 </svg>
@@ -606,12 +319,12 @@ Y}`;
 
             <div class="space-y-4 mb-8">
                 <!-- Primary Call Option -->
-                <a href="tel:+919352247590" class="flex items-center justify-between p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition duration-200">
+                <a href="tel:+919352247590" class="flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition duration-200">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Primary Mobile</p>
-                        <p class="text-xl font-semibold text-teal-600">+91 93522 47590</p>
+                        <p class="text-xl font-semibold text-blue-600">+91 93522 47590</p>
                     </div>
-                    <span class="text-white bg-teal-500 py-1 px-3 rounded-full text-sm font-bold">CALL NOW</span>
+                    <span class="text-white bg-blue-500 py-1 px-3 rounded-full text-sm font-bold">CALL NOW</span>
                 </a>
 
                 <!-- Secondary Call Option -->
@@ -668,9 +381,9 @@ Y}`;
              <span id="auth-status" class="text-red-500">Loading...</span>
         </div>
 
-        <!-- Header/Hero Section (Updated colors and added wave container) -->
-        <header class="bg-gradient-to-r from-cyan-600 to-teal-500 shadow-xl header-with-waves">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-white text-center">
+        <!-- Header/Hero Section -->
+        <header class="bg-gradient-to-r from-blue-700 to-blue-500 shadow-xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-white text-center rounded-b-xl">
                 <h1 class="text-4xl sm:text-6xl font-black mb-3">
                     AMRIT MINERAL WATER SUPPLIERS
                 </h1>
@@ -678,45 +391,26 @@ Y}`;
                     Purity Delivered. Serving Homes and Businesses.
                 </p>
             </div>
-            <!-- Animated Water Wave Feature -->
-            <div class="wave-container">
-                <div class="wave-path"></div>
-            </div>
         </header>
 
         <!-- Main Content Section -->
         <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- About/Description Card -->
-                <div id="about" class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl border-t-4 border-teal-500">
-                    <h2 class="text-3xl font-bold text-teal-700 mb-4">Our Commitment</h2>
-                    <div class="text-lg text-gray-600 space-y-4">
-                        <p>
-                            Amrit Mineral Water Suppliers is your most trusted partner for premium quality, clean, and refreshing mineral water. We are dedicated to ensuring the health and hydration of our community by maintaining the highest standards of purification and timely delivery.
-                        </p>
-                        <p>
-                            Whether you require daily supplies for your home, bulk orders for corporate offices, or special arrangements for events, our reliable service is designed to meet your specific needs with efficiency and care. Trust Amrit to deliver purity right to your doorstep.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Hydration Consultant Feature Card -->
-                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl border-t-4 border-cyan-500 flex flex-col items-center text-center">
-                    <h2 class="text-3xl font-bold text-cyan-700 mb-4">
-                        <span class="mr-2">✨</span> Need Hydration Advice?
-                    </h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Use our AI-powered consultant to get personalized advice on water intake, health, and quality.
+            <!-- About/Description Card -->
+            <section id="about" class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl mb-12 border-t-4 border-blue-500">
+                <h2 class="text-3xl font-bold text-blue-700 mb-4">Our Commitment</h2>
+                <div class="text-lg text-gray-600 space-y-4">
+                    <p>
+                        Amrit Mineral Water Suppliers is your most trusted partner for premium quality, clean, and refreshing mineral water. We are dedicated to ensuring the health and hydration of our community by maintaining the highest standards of purification and timely delivery.
                     </p>
-                    <button onclick="showConsultantModal()" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out uppercase text-lg">
-                        Talk to Consultant
-                    </button>
+                    <p>
+                        Whether you require daily supplies for your home, bulk orders for corporate offices, or special arrangements for events, our reliable service is designed to meet your specific needs with efficiency and care. Trust Amrit to deliver purity right to your doorstep.
+                    </p>
                 </div>
             </section>
-            
+
             <!-- Contact Details Card -->
-            <section id="contact" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            <section id="contact" class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 <!-- Contact Information Column -->
                 <div class="bg-white p-8 rounded-2xl shadow-xl border-l-4 border-cyan-500">
@@ -727,10 +421,10 @@ Y}`;
                         Get In Touch
                     </h2>
 
-                    <!-- Primary Mobile Number (Updated colors) -->
+                    <!-- Primary Mobile Number -->
                     <div class="mb-5">
                         <h3 class="font-semibold text-gray-500 uppercase tracking-wider text-sm">Mobile No (Primary)</h3>
-                        <a href="tel:+919352247590" class="text-xl text-teal-600 hover:text-teal-800 transition duration-300 flex items-center">
+                        <a href="tel:+919352247590" class="text-xl text-blue-600 hover:text-blue-800 transition duration-300 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.772-1.549a1 1 0 011.06-.54l4.435.74A1 1 0 0118 17v2a1 1 0 01-1 1h-2C7.82 20 2 14.18 2 7V3z" />
                             </svg>
@@ -738,7 +432,7 @@ Y}`;
                         </a>
                     </div>
                     
-                    <!-- Secondary Mobile Number (Updated colors) -->
+                    <!-- Secondary Mobile Number -->
                     <div class="mb-5">
                         <h3 class="font-semibold text-gray-500 uppercase tracking-wider text-sm">Mobile No (Secondary)</h3>
                         <a href="tel:+917611088865" class="text-xl text-cyan-600 hover:text-cyan-800 transition duration-300 flex items-center">
@@ -750,10 +444,10 @@ Y}`;
                     </div>
 
 
-                    <!-- Email Address (Updated colors) -->
+                    <!-- Email Address (This is the link that opens the email client) -->
                     <div class="mb-5">
                         <h3 class="font-semibold text-gray-500 uppercase tracking-wider text-sm">Email Address</h3>
-                        <a href="mailto:mohansulla786@gmail.com" class="text-xl text-teal-600 hover:text-teal-800 transition duration-300 flex items-center">
+                        <a href="mailto:mohansulla786@gmail.com" class="text-xl text-blue-600 hover:text-blue-800 transition duration-300 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -774,13 +468,13 @@ Y}`;
                     </div>
                 </div>
 
-                <!-- Call to Action Column (Updated colors) -->
-                <div class="p-8 rounded-2xl shadow-xl bg-teal-100 flex flex-col justify-center items-center text-center border-r-4 border-teal-500">
-                    <h3 class="text-2xl font-extrabold text-teal-800 mb-4">Ready for Pure Hydration?</h3>
-                    <p class="text-lg text-teal-700 mb-6">
+                <!-- Call to Action Column -->
+                <div class="p-8 rounded-2xl shadow-xl bg-blue-100 flex flex-col justify-center items-center text-center border-r-4 border-blue-500">
+                    <h3 class="text-2xl font-extrabold text-blue-800 mb-4">Ready for Pure Hydration?</h3>
+                    <p class="text-lg text-blue-700 mb-6">
                         Click below to view all contact options for immediate ordering.
                     </p>
-                    <button onclick="showContactOptions()" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out uppercase text-lg">
+                    <button onclick="showContactOptions()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out uppercase text-lg">
                         Order Now
                     </button>
                 </div>
@@ -796,5 +490,4 @@ Y}`;
     </div>
 
 </body>
-
 </html>
