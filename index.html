@@ -349,9 +349,9 @@
         }
         
         // --- Gemini API Logic (Hydration Consultant) ---
-        const GEMINI_API_KEY = "";
-        const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+       // Gemini API backend URL (Netlify Function ka path)
+const GEMINI_API_URL = "/.netlify/functions/gemini";
+Y}`;
         const SYSTEM_INSTRUCTION = "You are a friendly and professional Hydration Consultant for AMRIT Mineral Water Suppliers. Answer user questions concisely, focusing on hydration health, recommended water intake based on age/activity, and general water quality facts. Keep responses helpful and encouraging. Use Google Search grounding.";
 
         function delay(ms) {
@@ -796,4 +796,5 @@
     </div>
 
 </body>
+
 </html>
